@@ -50,7 +50,7 @@ fn read_key() -> Result<Option<String>, String> {
     match key_entry()?.get_password() {
         Ok(key) => Ok(Some(key)),
         Err(keyring::Error::NoEntry) => Ok(None),
-        Err(_) => Err("无法读取系统凭据，请检查 Windows 凭据管理器。".into()),
+        Err(_) => Err("无法读取系统凭据，请检查系统凭据管理器。".into()),
     }
 }
 fn invalidate(state: &AppState) {
