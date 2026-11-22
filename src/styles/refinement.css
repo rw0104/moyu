@@ -1,0 +1,25 @@
+/* Neutral reading hierarchy; blue is reserved for actions and active state. */
+:root {
+  --text: #1d1d1f;
+  --ink: #1d1d1f;
+  --secondary: #636366;
+  --accent: #0866d1;
+  --blue: #0866d1;
+}
+.sidebar { background: rgb(237 237 240 / 90%); }
+.nav-label, .nav-count, .sidebar-purpose, .connection-card small,
+.breadcrumb, .topbar-security, .page-subtitle {
+  color: var(--secondary);
+  font-size: 12px;
+}
+.sidebar-purpose { line-height: 1.75; }
+.connection-card strong { color: var(--text); font-size: 12px; }
+.brand-symbol { background: var(--accent); }
+.preview-banner { color: #4d617d; font-size: 12px; }
+.icon-button { color: #636366; }
+@media (max-width: 940px) { .sidebar-purpose { font-size: 11px; } }
+@media (prefers-reduced-transparency: reduce) { .sidebar { background: #ededf0; } }
+@media (prefers-contrast: more) {
+  :root { --secondary: #454549; }
+  .turn-source { border-color: #98989d; background: #f3f3f5; }
+}

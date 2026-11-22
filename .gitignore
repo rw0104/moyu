@@ -1,0 +1,17 @@
+node_modules/
+dist/
+src-tauri/target/
+src-tauri/gen/schemas/
+/artifacts/
+__pycache__/
+*.py[cod]
+*.tsbuildinfo
+*.log
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+.env*
+!.env.example
