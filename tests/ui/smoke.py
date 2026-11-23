@@ -22,7 +22,8 @@ SCREENSHOT = ROOT / "artifacts" / "image-history-conversation-long.png"
 
 
 def run():
-    report = {"app_version": "0.6.0", "fixture_url": URL, "real_component": "src/TranslationWorkspace.tsx", "styles": "src/styles.css",
+    version = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
+    report = {"app_version": version, "fixture_url": URL, "real_component": "src/TranslationWorkspace.tsx", "styles": "src/styles.css",
               "transport": "official @tauri-apps/api/mocks mockIPC before dynamic import",
               "model_api_tested": False, "native_desktop_used": False, "tests": []}
     errors = []

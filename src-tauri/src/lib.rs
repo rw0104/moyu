@@ -783,7 +783,7 @@ async fn set_capture_recording(app: tauri::AppHandle, recording: bool) -> Result
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let app = tauri::Builder::default()
         .setup(|app| {
             let directory = app.path().app_data_dir()?;
             std::fs::create_dir_all(&directory)?;
@@ -873,8 +873,17 @@ pub fn run() {
             start_capture,
             set_capture_recording
         ])
-        .run(tauri::generate_context!())
-        .expect("无法启动墨译，请检查 WebView2 和本地数据目录权限。");
+        .build(tauri::generate_context!())
+        .expect("无法启动墨译，请检查系统 WebView 和本地数据目录权限。");
+
+    #[cfg(target_os = "macos")]
+    app.run(|app, event| {
+        if let tauri::RunEvent::Reopen { .. } = event {
+            tray::show_main(app);
+        }
+    });
+    #[cfg(not(target_os = "macos"))]
+    app.run(|_, _| {});
 }
 
 #[cfg(test)]

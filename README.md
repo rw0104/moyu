@@ -1,8 +1,10 @@
 # 墨译 · Moyu
 
-Windows 桌面翻译软件，使用 Tauri 2 + React 19 + TypeScript + Rust。支持文字与图片文字翻译，DeepSeek 负责识别、翻译与一致性检查，本地 SQLite 保存完整会话、术语、确认译文和偏好。
+Windows 和 macOS 桌面翻译软件，使用 Tauri 2 + React 19 + TypeScript + Rust。支持文字与图片文字翻译，DeepSeek 负责识别、翻译与一致性检查，本地 SQLite 保存完整会话、术语、确认译文和偏好。
 
 ## 使用
+
+macOS 13 及以上可从 [GitHub Releases](https://github.com/rw0104/moyu/releases) 下载通用 DMG。打开后将「墨译 Moyu」拖入「应用程序」。从 0.6.1 起，点击「收起到托盘」或窗口左上角红色关闭按钮后，单击 Dock 或顶部菜单栏里的墨译图标即可回到原窗口。0.6.0 用户也可以右键点击菜单栏图标，选择「显示主窗口」。
 
 0.6.0 新增独立双向对话：外语来信译成中文，中文回复自动跟随客户语言，并优化原文/译文排版。可按[本地开发说明](#本地开发)生成 Windows x64 安装包。版本测试结果见[验证记录](docs/VERIFICATION.md)。
 

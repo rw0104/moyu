@@ -4,10 +4,12 @@ use tauri::{
     Manager,
 };
 
-fn show_main(app: &tauri::AppHandle) {
+pub(super) fn show_main(app: &tauri::AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
-        let _ = window.show();
+        #[cfg(target_os = "macos")]
+        let _ = app.show();
         let _ = window.unminimize();
+        let _ = window.show();
         let _ = window.set_focus();
     }
 }

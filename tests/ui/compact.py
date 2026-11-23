@@ -42,7 +42,8 @@ METRICS = """() => {
 
 def run():
     prior = json.loads(REPORT.read_text(encoding="utf-8")) if REPORT.exists() else {}
-    report = {"app_version": "0.6.0", "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
+    version = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
+    report = {"app_version": version, "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
               "baseline": prior.get("baseline"), "after": [], "tests": [],
               "model_api_tested": False, "native_desktop_used": False,
               "production_url": ORIGIN, "fixture_url": FIXTURE}
