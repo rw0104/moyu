@@ -1,5 +1,6 @@
 import { invoke, isTauri } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
+import { DEFAULT_CAPTURE_SHORTCUT } from './capture-shortcut';
 import type { Bootstrap, CapturePreferences, ConversationPage, DialogueInput, DialogueRoute, Language, WorkspaceMode, ImageInput, ImageExtraction, MemoryInput, Settings, TermInput, TranslationPlan, TranslationRequest, TranslationResult } from './types';
 
 export const desktop = isTauri();
@@ -19,7 +20,7 @@ export const api = {
   resolveDialogue: (request: DialogueInput) => invoke<DialogueRoute>('resolve_dialogue', { request }),
   saveDialoguePreferences: (peerLanguage: Language) => invoke<Bootstrap>('save_dialogue_preferences', { peerLanguage }),
   switchWorkspace: (mode: WorkspaceMode) => desktop ? invoke<Bootstrap>('switch_workspace', { mode }) : Promise.resolve({ ...structuredClone(preview), workspaceMode: mode, sessionId: `preview-${mode}` }),
-  capturePreferences: () => desktop ? invoke<CapturePreferences>('get_capture_preferences') : Promise.resolve({ shortcut: 'Ctrl+Alt+T', active: false }),
+  capturePreferences: () => desktop ? invoke<CapturePreferences>('get_capture_preferences') : Promise.resolve({ shortcut: DEFAULT_CAPTURE_SHORTCUT, active: false }),
   setCaptureShortcut: (shortcut: string) => invoke<CapturePreferences>('set_capture_shortcut', { shortcut }),
   setCaptureRecording: (recording: boolean) => invoke<void>('set_capture_recording', { recording }),
   startCapture: () => invoke<void>('start_capture'),
@@ -44,3 +45,5 @@ export const listenCaptureReady = (handler: (image: ImageInput) => void) => desk
   ? listen<ImageInput>('capture-ready', (event) => handler(event.payload)) : Promise.resolve(() => {});
 export const listenCaptureError = (handler: (error: string) => void) => desktop
   ? listen<string>('capture-error', (event) => handler(event.payload)) : Promise.resolve(() => {});
+export const listenCaptureStatus = (handler: (status: CapturePreferences) => void) => desktop
+  ? listen<CapturePreferences>('capture-status', (event) => handler(event.payload)) : Promise.resolve(() => {});

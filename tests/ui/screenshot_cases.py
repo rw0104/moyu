@@ -11,6 +11,54 @@ from pathlib import Path
 from playwright.sync_api import expect
 
 
+def macos_shortcut(browser, url):
+    context = browser.new_context(user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) AppleWebKit/605.1.15",
+                                  locale="zh-CN", viewport={"width": 1440, "height": 1050})
+    try:
+        page = context.new_page()
+        page.goto(url + "?application=1", wait_until="domcontentloaded")
+        page.get_by_role("button", name="设置", exact=True).click()
+        field = page.get_by_label("截屏翻译快捷键", exact=True)
+        # The fixture starts with an existing Windows-style Ctrl+Alt shortcut.
+        expect(field).to_have_value("⌃ Control + ⌥ Option + T")
+        expect(page.locator(".capture-settings")).to_contain_text("录屏与系统录音")
+        expect(page.locator("#capture-shortcut-help")).to_contain_text("按 Esc 取消")
+        field.focus()
+        expect(field).to_have_attribute("placeholder", "请按下新组合键")
+        page.keyboard.press("Shift+Z")
+        expect(page.locator(".capture-settings [role=alert]")).to_contain_text("Command")
+        page.keyboard.press("Meta+Control+Alt+Shift+KeyK")
+        expect(field).to_have_value("⌘ Command + ⌃ Control + ⌥ Option + ⇧ Shift + K")
+        page.evaluate("window.__moyuFixture.emitCaptureStatus(false, '快捷键已被其他应用占用。')")
+        expect(page.locator(".capture-settings .key-status")).to_have_text("快捷键未生效")
+        expect(page.locator(".capture-settings [role=alert]")).to_have_text("快捷键已被其他应用占用。")
+        expect(field).to_be_focused()
+        expect(field).to_have_value("⌘ Command + ⌃ Control + ⌥ Option + ⇧ Shift + K")
+        page.evaluate("window.__moyuFixture.emitCaptureStatus(true)")
+        expect(page.locator(".capture-settings .key-status")).to_have_text("全局快捷键已启用")
+        expect(page.locator(".capture-settings [role=alert]")).to_have_count(0)
+        page.get_by_role("button", name="保存截屏快捷键").click()
+        page.wait_for_function("window.__moyuFixture.capturePreferences.shortcut === 'Cmd+Ctrl+Alt+Shift+K'")
+        field.focus()
+        expect(field).to_have_attribute("placeholder", "请按下新组合键")
+        page.keyboard.press("Alt+F12")
+        expect(field).to_have_value("⌥ Option + F12")
+        page.keyboard.press("Meta+Shift+Digit2")
+        expect(field).to_have_value("⌘ Command + ⇧ Shift + 2")
+        page.keyboard.press("Escape")
+        page.wait_for_function("!window.__moyuFixture.captureRecording")
+        expect(field).to_have_value("⌘ Command + ⌃ Control + ⌥ Option + ⇧ Shift + K")
+        page.get_by_role("button", name="恢复默认截屏快捷键").click()
+        page.wait_for_function("window.__moyuFixture.capturePreferences.shortcut === 'Cmd+Shift+2'")
+        expect(field).to_have_value("⌘ Command + ⇧ Shift + 2")
+        page.get_by_role("button", name="连续翻译", exact=True).click()
+        expect(page.get_by_role("button", name="截屏并翻译")).to_have_attribute("title", "截屏并翻译（⌘ Command + ⇧ Shift + 2）")
+        return {"restored_default": "Cmd+Shift+2", "legacy_shortcut_displayed": True,
+                "four_modifiers_saved": True, "escape_discarded_edit": True}
+    finally:
+        context.close()
+
+
 def cases(page, root: Path, url: str):
     image_bytes = (root / "tests/ui/fixtures/translation-source.png").read_bytes()
     data_url = "data:image/png;base64," + base64.b64encode(image_bytes).decode("ascii")
@@ -30,7 +78,7 @@ def cases(page, root: Path, url: str):
     def record_shortcut(keys):
         field = page.get_by_label("截屏翻译快捷键", exact=True)
         field.focus()
-        page.wait_for_function("window.__moyuFixture.captureRecording")
+        expect(field).to_have_attribute("placeholder", "请按下新组合键")
         page.keyboard.press(keys)
         return field
 

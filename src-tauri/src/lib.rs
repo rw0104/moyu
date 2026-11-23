@@ -756,10 +756,13 @@ async fn set_capture_shortcut(
 ) -> Result<CaptureStatus, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let state = app.state::<AppState>();
-        let db = lock_db(&state)?;
-        let previous = db.capture_shortcut()?;
+        // Registration can dispatch to AppKit. Keep the database available to the main thread.
+        static SHORTCUT_CHANGE: Mutex<()> = Mutex::new(());
+        let _change = SHORTCUT_CHANGE.lock().map_err(|_| "无法保存截屏快捷键。")?;
+        let previous = lock_db(&state)?.capture_shortcut()?;
         let next = capture::configure(&app, &shortcut)?;
-        if let Err(error) = db.save_capture_shortcut(&next.shortcut) {
+        let saved = lock_db(&state).and_then(|db| db.save_capture_shortcut(&next.shortcut));
+        if let Err(error) = saved {
             let _ = capture::configure(&app, &previous);
             return Err(error);
         }

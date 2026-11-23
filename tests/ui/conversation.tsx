@@ -238,6 +238,10 @@ const fixture = {
   get capturePreferences() { return clone(capturePreferences); },
   get captureStarts() { return captureStarts; },
   get captureRecording() { return captureRecording; },
+  async emitCaptureStatus(active: boolean, error = '') {
+    capturePreferences = { ...capturePreferences, active, error };
+    await emit('capture-status', clone(capturePreferences));
+  },
   failNextShortcutSave() { rejectShortcutSave = true; },
   async emitCaptureImage(dataUrl: string, name = 'synthetic-capture.png') { await emit('capture-ready', { dataUrl, name }); },
   async emitCaptureError(message = '测试截屏错误：选区不可用，请重试。') { await emit('capture-error', message); },

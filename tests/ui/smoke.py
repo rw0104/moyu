@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from playwright.sync_api import sync_playwright, expect
 from image_history_cases import cases as image_history_cases
-from screenshot_cases import cases as screenshot_cases
+from screenshot_cases import cases as screenshot_cases, macos_shortcut
 from dialogue_cases import cases as dialogue_cases
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -35,7 +35,8 @@ def run():
         except Exception:
             browser = pw.chromium.launch(headless=True, channel="msedge")
             report["browser"] = "Microsoft Edge, isolated headless"
-        context = browser.new_context(viewport={"width": 1440, "height": 1050}, device_scale_factor=1,
+        context = browser.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                                      viewport={"width": 1440, "height": 1050}, device_scale_factor=1,
                                       locale="zh-CN", reduced_motion="reduce")
         page = context.new_page()
         page.on("pageerror", lambda err: errors.append(str(err)))
@@ -424,6 +425,7 @@ def run():
 
         for name, callback in screenshot_cases(page, ROOT, URL):
             check(name, callback)
+        check("macos_capture_shortcut_record_save_cancel_and_restore", lambda: macos_shortcut(browser, URL))
 
         for name, callback in dialogue_cases(page, ROOT, URL):
             check(name, callback)

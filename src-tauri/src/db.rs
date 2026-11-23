@@ -12,6 +12,11 @@ use crate::models::{
 // Increment when translation instructions or memory semantics change.
 const MEMORY_PROTOCOL_VERSION: &str = "v2";
 
+#[cfg(target_os = "macos")]
+const DEFAULT_CAPTURE_SHORTCUT: &str = "Cmd+Shift+2";
+#[cfg(not(target_os = "macos"))]
+const DEFAULT_CAPTURE_SHORTCUT: &str = "Ctrl+Alt+T";
+
 pub struct Database {
     connection: Connection,
 }
@@ -204,7 +209,7 @@ impl Database {
             )
             .optional()
             .map_err(db_error)
-            .map(|value| value.unwrap_or_else(|| "Ctrl+Alt+T".into()))
+            .map(|value| value.unwrap_or_else(|| DEFAULT_CAPTURE_SHORTCUT.into()))
     }
 
     pub fn save_capture_shortcut(&self, shortcut: &str) -> Result<(), String> {
@@ -968,7 +973,7 @@ mod tests {
             let db = Database::open(&path).unwrap();
             session = db.session_id().unwrap();
             context = db.context_id().unwrap();
-            assert_eq!(db.capture_shortcut().unwrap(), "Ctrl+Alt+T");
+            assert_eq!(db.capture_shortcut().unwrap(), DEFAULT_CAPTURE_SHORTCUT);
             db.save_capture_shortcut("Ctrl+Shift+Q").unwrap();
             assert_eq!(db.settings().unwrap(), Settings::default());
             assert_eq!(db.session_id().unwrap(), session);

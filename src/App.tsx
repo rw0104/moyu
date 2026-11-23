@@ -5,8 +5,9 @@ import {
   Globe2, KeyRound, Languages, LoaderCircle, LockKeyhole, Pencil, Plus,
   Search, Settings2, ShieldCheck, Sparkles, Trash2, X, MessageSquareText,
 } from 'lucide-react';
-import { api, desktop, listenCaptureError, listenCaptureReady } from './bridge';
-import CaptureSettings, { DEFAULT_CAPTURE_SHORTCUT } from './CaptureSettings';
+import { api, desktop, listenCaptureError, listenCaptureReady, listenCaptureStatus } from './bridge';
+import CaptureSettings from './CaptureSettings';
+import { DEFAULT_CAPTURE_SHORTCUT } from './capture-shortcut';
 import TranslationWorkspace, { type LoadedDraft } from './TranslationWorkspace';
 import { LANGUAGES, type Bootstrap, type CapturePreferences, type CaptureRequest, type ConversationPage, type Language, type MemoryEntry, type Model,
   type Settings, type Style, type Term, type TermInput, type TranslationResult, type WorkspaceMode } from './types';
@@ -58,6 +59,7 @@ export default function App() {
   const [workspaceBusy, setWorkspaceBusy] = useState(false);
   const [capturePreferences, setCapturePreferences] = useState<CapturePreferences>({ shortcut: DEFAULT_CAPTURE_SHORTCUT, active: false });
   const [capturePreferencesLoading, setCapturePreferencesLoading] = useState(true);
+  const captureStatusRevision = useRef(0);
   const [captureRequests, setCaptureRequests] = useState<CaptureRequest[]>([]);
   const [apiKey, setApiKey] = useState('');
   const [termForm, setTermForm] = useState<TermInput | null>(null);
@@ -98,19 +100,27 @@ export default function App() {
       setPage(workspaceModeRef.current === 'dialogue' ? 'dialogue' : 'translate'); setSearch(''); setError('');
     }).then(keep).catch((reason) => { if (!disposed) setError(errorLabel(reason)); });
     void listenCaptureError((reason) => { if (!disposed) setError(reason); }).then(keep).catch((reason) => { if (!disposed) setError(errorLabel(reason)); });
+    void listenCaptureStatus((status) => {
+      if (disposed) return;
+      captureStatusRevision.current++;
+      setCapturePreferences(status);
+    }).then(keep).catch((reason) => { if (!disposed) setError(errorLabel(reason)); });
     return () => { disposed = true; for (const stop of stops) stop(); };
   }, []);
   useEffect(() => {
     let disposed = false;
+    const revision = captureStatusRevision.current;
+    const isCurrent = () => !disposed && revision === captureStatusRevision.current;
     setCapturePreferencesLoading(true);
-    void api.capturePreferences().then((next) => { if (!disposed) setCapturePreferences(next); })
-      .catch((reason) => { if (!disposed) setCapturePreferences((current) => ({ ...current, active: false, error: errorLabel(reason) })); })
+    void api.capturePreferences().then((next) => { if (isCurrent()) setCapturePreferences(next); })
+      .catch((reason) => { if (isCurrent()) setCapturePreferences((current) => ({ ...current, active: false, error: errorLabel(reason) })); })
       .finally(() => { if (!disposed) setCapturePreferencesLoading(false); });
     return () => { disposed = true; };
   }, [page === 'settings']);
   const acceptCapture = useCallback((id: string) => setCaptureRequests((current) => current.filter((image) => image.id !== id)), []);
   async function saveCaptureShortcut(shortcut: string) {
     const next = await api.setCaptureShortcut(shortcut);
+    captureStatusRevision.current++;
     setCapturePreferences(next);
     setNotice(shortcut ? '截屏快捷键已保存' : '截屏快捷键已关闭');
   }

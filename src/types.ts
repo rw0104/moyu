@@ -24,7 +24,7 @@ export interface DialogueRoute { sourceLanguage: Language; targetLanguage: Langu
 export interface Settings { model: Model; style: Style; useMemory: boolean; useContext: boolean; saveHistory: boolean }
 export interface SourceImage { id: string; name: string; mimeType: string; thumbnailDataUrl: string }
 export interface ImageInput { dataUrl: string; name: string }
-export interface CapturePreferences { shortcut: string; active: boolean; error?: string }
+export interface CapturePreferences { shortcut: string; active: boolean; error?: string | null }
 export interface CaptureRequest extends ImageInput { id: string }
 export interface ImageExtraction { text: string; sourceImage: SourceImage }
 export interface ConversationSummary { id: string; title: string; preview: string; turnCount: number; createdAt: string; updatedAt: string; mode?: WorkspaceMode }

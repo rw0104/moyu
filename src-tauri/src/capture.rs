@@ -1,8 +1,9 @@
-//! Windows screenshot selection and global shortcuts. Pixels stay in process memory;
+//! Desktop screenshot selection and global shortcuts. Pixels stay in process memory;
 //! only the selected PNG is sent to the existing translation UI.
-#[cfg(not(windows))]
+#[cfg(not(any(windows, target_os = "macos")))]
 use crate::models::CaptureStatus;
 
+#[cfg(any(windows, test))]
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Shortcut {
     normalized: String,
@@ -10,6 +11,7 @@ struct Shortcut {
     key: u32,
 }
 
+#[cfg(any(windows, test))]
 fn parse_shortcut(value: &str) -> Result<Option<Shortcut>, String> {
     if value.trim().is_empty() {
         return Ok(None);
@@ -77,6 +79,7 @@ fn parse_shortcut(value: &str) -> Result<Option<Shortcut>, String> {
     }))
 }
 
+#[cfg(any(windows, test))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Selection {
     left: i32,
@@ -85,6 +88,7 @@ struct Selection {
     height: i32,
 }
 
+#[cfg(any(windows, test))]
 fn selection(start: (i32, i32), end: (i32, i32), width: i32, height: i32) -> Option<Selection> {
     if width <= 0 || height <= 0 {
         return None;
@@ -106,32 +110,36 @@ fn selection(start: (i32, i32), end: (i32, i32), width: i32, height: i32) -> Opt
 #[path = "capture_windows.rs"]
 mod platform;
 
-#[cfg(windows)]
+#[cfg(target_os = "macos")]
+#[path = "capture_macos.rs"]
+mod platform;
+
+#[cfg(any(windows, target_os = "macos"))]
 pub use platform::{configure, initialize, set_recording, start_capture, status};
 
-#[cfg(not(windows))]
+#[cfg(not(any(windows, target_os = "macos")))]
 pub fn initialize(_: &tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
-#[cfg(not(windows))]
+#[cfg(not(any(windows, target_os = "macos")))]
 pub fn configure(_: &tauri::AppHandle, _: &str) -> Result<CaptureStatus, String> {
-    Err("截屏快捷键目前仅支持 Windows。".into())
+    Err("截屏快捷键目前仅支持 Windows 和 macOS。".into())
 }
-#[cfg(not(windows))]
+#[cfg(not(any(windows, target_os = "macos")))]
 pub fn set_recording(_: &tauri::AppHandle, _: bool) -> Result<(), String> {
-    Err("截屏快捷键目前仅支持 Windows。".into())
+    Err("截屏快捷键目前仅支持 Windows 和 macOS。".into())
 }
-#[cfg(not(windows))]
+#[cfg(not(any(windows, target_os = "macos")))]
 pub fn start_capture(_: &tauri::AppHandle) -> Result<(), String> {
-    Err("截屏目前仅支持 Windows。".into())
+    Err("截屏目前仅支持 Windows 和 macOS。".into())
 }
-#[cfg(not(windows))]
+#[cfg(not(any(windows, target_os = "macos")))]
 pub fn status(_: &tauri::AppHandle) -> Result<CaptureStatus, String> {
     Ok(CaptureStatus {
         shortcut: String::new(),
         active: false,
         capturing: false,
-        error: Some("截屏快捷键目前仅支持 Windows。".into()),
+        error: Some("截屏快捷键目前仅支持 Windows 和 macOS。".into()),
     })
 }
 
